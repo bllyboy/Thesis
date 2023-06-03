@@ -1,0 +1,8 @@
+
+
+nc: 15
+
+names: ['cavity','hamburger','pulled pork','ribs','chicken breast','french onion soup','chicken noodle soup','tomato soup','marinara sauce','meatballs','car','tv','person','cat','dog','idcard']
+
+train: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/train
+val: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/test
