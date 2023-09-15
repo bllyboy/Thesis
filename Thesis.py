@@ -6,6 +6,7 @@ from IPython.display import display
 import os
 import torch
 import sys
+import random
 
 sys.path.append('C:/Users/Adam/yolov5')  # add path to yolov5 directory
 from yolov5.models.experimental import attempt_load
@@ -41,82 +42,18 @@ import numpy as np
 #        os.rename(os.path.join(labelled_images_path, img_path), os.path.join("train", img_path))
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-# Define the command to train the YOLOv5 model
-# Path to YOLOv5 repository
-# yolo_dir = r'C:\Users\Adam\yolov5'
 
-# Paths to training and testing data
-# train_data = r'\\train'
-# test_data = r'\\test'
+# Begin OCR
 
-# Path to the .yaml file
-# yaml_path = os.path.join(os.getcwd(), 'data.yaml')
+names = ['idcard', 'nmidcard']
 
-# Command to train the model
-# os.system(f'python {os.path.join(yolo_dir, "train.py")} --img 640 --batch 16 --epochs 50 --data {yaml_path} --weights yolov5s.pt')
-
-# train_command = "python C:/Users/Adam/yolov5/train.py --data C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/data.yaml --cfg yolov5s.yaml --weights yolov5s.pt --batch-size 16 --epochs 3 --noval"
-
-
-# Execute the command to train the YOLOv5 model
-# os.system(train_command)
-
-
-# Import YOLOv5
-
-
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Load the model
-# model = attempt_load('C:/Users/Adam/yolov5/runs/train/exp31/weights/best.pt').to(device)
-
-# Load image
-# img_path = 'C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/IDTrainPics/IMG_0661.jpg'
-# img0 = cv2.imread(img_path)  # BGR
-# img = letterbox(img0, 640, stride=32)[0]
-# img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-# img = np.ascontiguousarray(img)
-
-# Perform inference
-# img = torch.from_numpy(img).to(device)
-# img = img.float()  # uint8 to fp16/32
-# img /= 255.0  # (0 - 255) to (0.0 - 1.0)
-# if img.ndimension() == 3:
-#    img = img.unsqueeze(0)
-
-# pred = model(img)[0]  # Perform inference
-
-# Apply NMS
-# pred = non_max_suppression(pred, 0.25, 0.45, agnostic=True)
-
-# Process detections
-# for i, det in enumerate(pred):  # detections per image
-#    gn = torch.tensor(img0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
-#    if len(det):
-# Rescale boxes from img_size to img0 size
-#        det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], img0.shape).round()
-
-# Extract ID card
-#        for *xyxy, conf, cls in reversed(det):
-#            x1, y1, x2, y2 = xyxy
-#            id_card = img0[int(y1):int(y2), int(x1):int(x2)]
-#            cv2.imshow('ID Card', id_card)
-#            cv2.waitKey(0)
-#            cv2.destroyAllWindows()
-
-# Apply OCR to the cropped ID card
-#            gray_id_card = cv2.cvtColor(id_card, cv2.COLOR_BGR2GRAY)
-
-#            pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
-#            text = pytesseract.image_to_string(gray_id_card)
-#            print(text)
+colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(names))]  # generate distinct colors for each class
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the model
-model = attempt_load('C:/Users/Adam/yolov5/runs/train/exp31/weights/best.pt').to(device)
+model = attempt_load('C:/Users/Adam/yolov5/runs/train/exp45/weights/best.pt').to(device)
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -125,7 +62,7 @@ expected_name = "TITOUAH ADAM"
 expected_address = "47 Triq Santa Margerita Tas-Sliema"
 
 
-# expected_dob = "DOB"
+#expected_dob = "DOB"
 
 def verify_information(extracted_text):
     extracted_text = extracted_text.upper().replace("\n", " ")  # Convert to upper case and replace newline characters
@@ -145,6 +82,19 @@ def verify_information(extracted_text):
     return name_in_text and address_in_text
 
 
+def plot_one_box(x, img, color=None, label=None, line_thickness=None):
+    # Plots one bounding box on image img
+    tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
+    color = color or [random.randint(0, 255) for _ in range(3)]
+    c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
+    cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
+    if label:
+        tf = max(tl - 1, 1)  # font thickness
+        t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
+        c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
+        cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
+        cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+
 def get_text_from_nru(text):
     parts = text.split("Nru", 1)  # split the text by "Nru", but only for the first occurrence
     if len(parts) > 1:
@@ -154,6 +104,8 @@ def get_text_from_nru(text):
 
 
 
+
+# [The imports and initial setup remain unchanged]
 
 def process_image(img_path):
     img0 = cv2.imread(img_path)  # BGR
@@ -171,53 +123,76 @@ def process_image(img_path):
     pred = model(img)[0]  # Perform inference
 
     # Apply NMS
-    pred = non_max_suppression(pred, 0.25, 0.45, agnostic=True)
+    pred = non_max_suppression(pred, 0.59, 0.45, agnostic=False)
 
     # Process detections
     for i, det in enumerate(pred):  # detections per image
         gn = torch.tensor(img0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
         if len(det):
+            print("Detection found!")
             # Rescale boxes from img_size to img0 size
             det[:, :4] = scale_boxes(img.shape[2:], det[:, :4], img0.shape).round()
 
-            # Extract ID card
+            #debug
             for *xyxy, conf, cls in reversed(det):
-                x1, y1, x2, y2 = xyxy
-                id_card = img0[int(y1):int(y2), int(x1):int(x2)]
-                # Apply OCR to the cropped ID card
-                gray_id_card = cv2.cvtColor(id_card, cv2.COLOR_BGR2GRAY)
+                print(f"Detected class: {int(cls)}, Confidence: {conf}")
 
-                # Resizing the image
-                gray_id_card = cv2.resize(gray_id_card, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_CUBIC)
+            # Extract ID card only for Maltese ID class (class 0)
+            for *xyxy, conf, cls in reversed(det):
+                label = f"{names[int(cls)]} ({conf:.2f})"
+                plot_one_box(xyxy, img0, color=colors[int(cls)], label=label, line_thickness=3)
+                if int(cls) == 0:  # Check if the detected class is Maltese ID
+                    print("Maltese ID found!")
+                    x1, y1, x2, y2 = xyxy
+                    id_card = img0[int(y1):int(y2), int(x1):int(x2)]
+                    # Apply OCR to the cropped ID card
+                    gray_id_card = cv2.cvtColor(id_card, cv2.COLOR_BGR2GRAY)
 
-                # Binarization
-                (thresh, binarized_image) = cv2.threshold(gray_id_card, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                    # Resizing the image
+                    gray_id_card = cv2.resize(gray_id_card, None, fx=1.2, fy=1.2, interpolation=cv2.INTER_CUBIC)
 
-                # Median filtering for noise reduction
-                processed_image = cv2.medianBlur(binarized_image, 3)
+                    # Binarization
+                    (thresh, binarized_image) = cv2.threshold(gray_id_card, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-                # OCR with English language specified
-                custom_config = r'--oem 3 --psm 3'
-                text = pytesseract.image_to_string(processed_image, config=custom_config, lang='eng')
-                text = get_text_from_nru(text)
+                    # Median filtering for noise reduction
+                    processed_image = cv2.medianBlur(binarized_image, 3)
 
+                    # OCR with English language specified
+                    custom_config = r'--oem 3 --psm 3'
+                    text = pytesseract.image_to_string(processed_image, config=custom_config, lang='eng')
+                    text = get_text_from_nru(text)
 
-                # Verify the information
-                if verify_information(text):
-                    print("User is verified")
-                else:
-                    print("User could not be verified")
-                return text
+                    # Verify the information
+                    if verify_information(text):
+                        print("User is verified")
+                    else:
+                        print("User could not be verified")
+                    return text
+    cv2.imwrite(f"debug_{i}.jpg", img0)
+    # Resize for visualization
+    max_size = 800
+    h, w = img0.shape[:2]
+    if h > w:
+        new_h, new_w = max_size, int(max_size * w / h)
+    else:
+        new_w, new_h = max_size, int(max_size * h / w)
+
+    resized_img = cv2.resize(img0, (new_w, new_h))
+
+    cv2.imshow('Detections', resized_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     return ""
 
+# [The rest of the code remains unchanged]
 
-# Define Levenshtein distance function
-# def levenshtein(s1, s2):
-#    return distance(s1, s2)
 
+#End of OCR Block
+
+# Uncomment following
 # Extract texts from all images in the directory
-image_directory = r'C:\Users\Adam\Documents\Adam\SCHOOL\FinalYear\Thesis\IDTrainPics\IMG_0661.JPG'
+image_directory = r'C:\Users\Adam\Documents\Adam\SCHOOL\FinalYear\Thesis\IDTrainPics\italyexample.JPG'
 
 output_file_path = 'ThesisOCRResults.txt'
 
@@ -230,15 +205,4 @@ with open(output_file_path, 'w') as file:
     file.write(f'Filename: {filename}\n')
     file.write(f'Extracted Text: {extracted_text}\n\n')
 
-#with open(output_file_path, 'w') as file:
-#    for filename in os.listdir(image_directory):
-#        if filename.endswith(".JPG"):  # Add more conditions if there are other image formats
-#            image_path = os.path.join(image_directory, filename)
-#            extracted_text = process_image(image_path)
-#            file.write(f'Filename: {filename}\n')
-#            file.write(f'Extracted Text: {extracted_text}\n\n')
 
-            # Assuming you have a ground truth for each image:
-            # ground_truth = get_ground_truth(filename)
-            # lev_distance = levenshtein(extracted_text, ground_truth)
-            # print(f'Levenshtein Distance for {filename}: {lev_distance}')

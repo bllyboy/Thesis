@@ -1,8 +1,9 @@
 
 
-nc: 15
+nc: 2
 
-names: ['cavity','hamburger','pulled pork','ribs','chicken breast','french onion soup','chicken noodle soup','tomato soup','marinara sauce','meatballs','car','tv','person','cat','dog','idcard']
+names: ['idcard', 'nmidcard']
 
 train: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/train
-val: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/test
+val: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/val
+test: C:/Users/Adam/Documents/Adam/SCHOOL/FinalYear/Thesis/test
