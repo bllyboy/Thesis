@@ -53,7 +53,7 @@ colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(names))]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the model
-model = attempt_load('C:/Users/Adam/yolov5/runs/train/exp45/weights/best.pt').to(device)
+model = attempt_load('C:/Users/Adam/yolov5/runs/train/exp44/weights/best.pt').to(device)
 
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
@@ -123,7 +123,7 @@ def process_image(img_path):
     pred = model(img)[0]  # Perform inference
 
     # Apply NMS
-    pred = non_max_suppression(pred, 0.59, 0.45, agnostic=False)
+    pred = non_max_suppression(pred, 0.25, 0.45, agnostic=True)
 
     # Process detections
     for i, det in enumerate(pred):  # detections per image
@@ -192,7 +192,7 @@ def process_image(img_path):
 
 # Uncomment following
 # Extract texts from all images in the directory
-image_directory = r'C:\Users\Adam\Documents\Adam\SCHOOL\FinalYear\Thesis\IDTrainPics\italyexample.JPG'
+image_directory = r'C:\Users\Adam\Documents\Adam\SCHOOL\FinalYear\Thesis\IDTrainPics\maltatest.JPG'
 
 output_file_path = 'ThesisOCRResults.txt'
 
